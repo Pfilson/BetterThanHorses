@@ -171,19 +171,18 @@ public class ModelBetterHorse extends ModelBase {
 	public void setRotationAngles(float travelDistance, float travelSpeed, float par3, float headYaw, float headPitch, float scale, Entity entity) {
 		final float radiansPerDegree = 0.017453292F;
 		
-		// TODO: Once work on the horse Entity class has begun, fix this section to use that class.
-		EntityBetterHorse horse = (EntityBetterHorse)entity;
-		boolean isGalloping  = horse.isGalloping;
+		BTHEntityHorse horse = (BTHEntityHorse)entity;
+		boolean isGalloping = horse.isGalloping();
 		// The goal of these two lines are to obtain hunger and energy as fractions (floats from 0.0F to 1.0F).
 		// (For now, I just assume they are already available in that format.)
-		float energyFraction = horse.energyFraction;
-		float foodFraction   = horse.foodFraction;
+		float energyFraction = (float)horse.getStamina() / horse.cMaxStamina;
+		float foodFraction = (float)horse.getHunger() / horse.cMaxHunger;
 		
 		// Walking:   Legs swing as all mobs' legs do.
 		// Galloping: Leg movement more closely resembles a galloping horse (1-2-3-4-...-1-2-3-4-...)
 		float swingPhase = travelDistance * swingRate;
 		float legSwingExtent = travelSpeed * legSwingRange;
-		if (horse.isGalloping) {
+		if (isGalloping) {
 			this.legFrontLeft.rotateAngleX  = legSwingExtent * MathHelper.cos(swingPhase + (float)Math.PI * 0.3333F);
 			this.legFrontRight.rotateAngleX = legSwingExtent * MathHelper.cos(swingPhase);
 			this.legRearLeft.rotateAngleX   = legSwingExtent * MathHelper.cos(swingPhase + (float)Math.PI);
