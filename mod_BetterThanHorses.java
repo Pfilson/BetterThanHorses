@@ -15,7 +15,7 @@ import net.minecraft.client.Minecraft;
 
 public class mod_BetterThanHorses extends BaseMod 
 {
-    //Feel free to change this to something less likely to be overriden by Mojang in the future
+	//Feel free to change this to something less likely to be overriden by Mojang in the future
 	//Or set it as a config option, whatever satisfies you
 	private static int cHorseEntityID = 30;
 	
@@ -24,7 +24,7 @@ public class mod_BetterThanHorses extends BaseMod
 	{
 		return "0.1"; //We need a standardized version naming scheme...
 	}
-
+	
 	@Override
 	public void load() 
 	{
