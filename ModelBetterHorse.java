@@ -1,13 +1,9 @@
-// Michael 'ExpHP' Lamparski (exphp@yahoo.com)
-// For Better With Horses - Now With Better Horses!
-// 2013-06-10 (v2.8)
-
 package net.minecraft.src;
 
 import org.lwjgl.opengl.GL11;
 
 public class ModelBetterHorse extends ModelBase {
-  
+	
 	public ModelRenderer head;
 	public ModelRenderer neck;
 	public ModelRenderer body;
@@ -71,9 +67,6 @@ public class ModelBetterHorse extends ModelBase {
 		final int coordLegU = 46, coordLegV = 22;
 		final int dimLegX = 4, dimLegY = 12, dimLegZ = 4;
 		
-		// See attached note ("render-code-note.txt") on how to best go about modifying
-		// the following code.
-		
 		this.head = new ModelRenderer(this, 0, 0);
 		this.head.setRotationPoint(0.0F, 6.0F, -8.0F);
 		this.head.setTextureOffset(coordHeadU, coordHeadV);
@@ -123,17 +116,17 @@ public class ModelBetterHorse extends ModelBase {
 		
 		if (this.isChild) {
 			// Babies render with big heads and smaller bodies.
-			// Baby Horses render without necks, partly due to technical reasons.
 			float babyBodyScale = 0.5F;
 			
 			// The baby's head location must be adjusted to the proper location for its new, smaller body.
-			float babyHeadOffsetY = 19.5F;
+			float babyHeadOffsetY = 9.0F;
 			float babyHeadOffsetZ = 5.5F;
 			
 			// Big head
 			GL11.glPushMatrix();
 			GL11.glTranslatef(0.0F, babyHeadOffsetY * scale, babyHeadOffsetZ * scale);
 			this.head.render(scale);
+			this.neck.render(scale);
 			GL11.glPopMatrix();
 			
 			// Little body
