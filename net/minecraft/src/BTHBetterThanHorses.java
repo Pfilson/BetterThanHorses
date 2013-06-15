@@ -2,6 +2,10 @@ package net.minecraft.src;
 
 public class BTHBetterThanHorses extends FCAddOn 
 {
+	//A note for those working on the project: When decompiling BTW version 4.84 you will likely get a few errors
+	//related to the EntityAnimal class. To fix these, replace the variable this.breeding with
+	//this.entityLivingToAttack wherever it is shown to cause an error.
+	
 	/**The better than horses addon instance*/
 	public static BTHBetterThanHorses instance = new BTHBetterThanHorses();
 	
