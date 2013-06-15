@@ -165,11 +165,9 @@ public class ModelBetterHorse extends ModelBase {
 		final float radiansPerDegree = 0.017453292F;
 		
 		BTHEntityHorse horse = (BTHEntityHorse)entity;
-		boolean isGalloping = horse.isGalloping();
-		// The goal of these two lines are to obtain hunger and energy as fractions (floats from 0.0F to 1.0F).
-		// (For now, I just assume they are already available in that format.)
-		float energyFraction = (float)horse.getStamina() / horse.cMaxStamina;
-		float foodFraction = (float)horse.getHunger() / horse.cMaxHunger;
+		boolean isGalloping  = horse.isGalloping();
+		float energyFraction = (float)(horse.getStamina() / horse.cMaxStamina);
+		float foodFraction   = (float)(horse.getHunger() / horse.cMaxHunger);
 		
 		// Walking:   Legs swing as all mobs' legs do.
 		// Galloping: Leg movement more closely resembles a galloping horse (1-2-3-4-...-1-2-3-4-...)
