@@ -2,7 +2,7 @@ package net.minecraft.src;
 
 import org.lwjgl.opengl.GL11;
 
-public class ModelBetterHorse extends ModelBase {
+public class BTHModelHorse extends ModelBase {
 	
 	public ModelRenderer head;
 	public ModelRenderer neck;
@@ -38,7 +38,7 @@ public class ModelBetterHorse extends ModelBase {
 	/** Factor deciding how quickly limbs swing.  0.6662F for most things in Minecraft. */
 	static final float swingRate = 0.6662F;
 	
-	public ModelBetterHorse() {
+	public BTHModelHorse() {
 		super();
 		
 		// Texture sheet parameters

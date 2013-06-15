@@ -36,6 +36,6 @@ public class mod_BetterThanHorses extends BaseMod
 	@Override
 	public void addRenderer(Map aEntityRenderMap) 
 	{
-		aEntityRenderMap.put(BTHEntityHorse.class, new BTHRenderHorse(new ModelBetterHorse()));
+		aEntityRenderMap.put(BTHEntityHorse.class, new BTHRenderHorse(new BTHModelHorse()));
 	}
 }
