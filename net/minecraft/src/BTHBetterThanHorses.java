@@ -21,7 +21,8 @@ public class BTHBetterThanHorses extends FCAddOn
 		EntityList.addMapping(BTHEntityHorse.class, "bthHorse", cHorseEntityID);
 		
 		//Add the renderer for the horse entity
-		//RenderManager.AddEntityRenderer(BTHEntityHorse.class, new BTHRenderHorse(new BTHModelHorse()));
+		//Note: This needs to be disabled in the server version
+		RenderManager.AddEntityRenderer(BTHEntityHorse.class, new BTHRenderHorse(new BTHModelHorse()));
 		
 		FCAddOnHandler.LogMessage("Better Than Horses " + cVersion + "has been loaded.");
 	}
