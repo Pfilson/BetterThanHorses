@@ -166,8 +166,8 @@ public class ModelBetterHorse extends ModelBase {
 		
 		BTHEntityHorse horse = (BTHEntityHorse)entity;
 		boolean isGalloping  = horse.isGalloping();
-		float energyFraction = (float)(horse.getStamina() / horse.cMaxStamina);
-		float foodFraction   = (float)(horse.getHunger() / horse.cMaxHunger);
+		float energyFraction = (float)horse.getStamina() / horse.cMaxStamina;
+		float foodFraction   = (float)horse.getHunger() / horse.cMaxHunger;
 		
 		// Walking:   Legs swing as all mobs' legs do.
 		// Galloping: Leg movement more closely resembles a galloping horse (1-2-3-4-...-1-2-3-4-...)
