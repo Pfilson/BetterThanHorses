@@ -13,6 +13,10 @@ public class BTHBetterThanHorses extends FCAddOn
 	/**The better than horses addon instance*/
 	public static BTHBetterThanHorses instance = new BTHBetterThanHorses();
 	
+	/**Used to keep client-only code away from the server*/
+	//The following line is modified by the server code generator
+	public static BTHProxy proxy = new BTHProxy();
+	
 	//Feel free to change this to something less likely to be overriden by Mojang in the future
 	//Or set it as a config option, whatever satisfies you
 	private static int cHorseEntityID = 30;
@@ -29,8 +33,7 @@ public class BTHBetterThanHorses extends FCAddOn
 		EntityList.addMapping(BTHEntityHorse.class, "bthHorse", cHorseEntityID);
 		
 		//Add the renderer for the horse entity
-		//Note: This needs to be disabled in the server version
-		RenderManager.AddEntityRenderer(BTHEntityHorse.class, new BTHRenderHorse(new BTHModelHorse()));
+		proxy.addEntityRenderers();
 		
 		//Add horses to the list of spawnable animals
 		this.addSpawn(BTHEntityHorse.class, 10, 4, 4, EnumCreatureType.creature, createBiomeArrayForHorses());
