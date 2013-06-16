@@ -634,12 +634,12 @@ public class BTHEntityHorse extends EntityAnimal
 			{
 				EntityItem lCurrentItemEntity = (EntityItem)lItemEntityIterator.next();
 				ItemStack lCurrentItem = lCurrentItemEntity.getEntityItem();
-				if (m_hungerRestoredItem[lCurrentItem.itemID] > 0)
+				if (cHungerRestoredItem[lCurrentItem.itemID] > 0)
 				{
 					//If the food is within eating range, go ahead and eat the whole stack
 					if (this.getDistanceSqToEntity(lCurrentItemEntity) < this.cFoodEatRangeSq)
 					{
-						this.adjustHunger(m_hungerRestoredItem[lCurrentItem.itemID] * lCurrentItem.stackSize);
+						this.adjustHunger(cHungerRestoredItem[lCurrentItem.itemID] * lCurrentItem.stackSize);
 						lCurrentItemEntity.setDead();
 						//TODO: Add eating sound
 					}
@@ -761,6 +761,6 @@ public class BTHEntityHorse extends EntityAnimal
 	static
 	{
 		//TODO: add the actual list of items which the horse eats
-		m_hungerRestoredItem[Item.appleRed.itemID] = 2;
+		cHungerRestoredItem[Item.appleRed.itemID] = 2;
 	}
 }
