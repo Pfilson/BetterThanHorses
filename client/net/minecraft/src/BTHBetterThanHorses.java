@@ -15,7 +15,7 @@ public class BTHBetterThanHorses extends FCAddOn
 	
 	/**Used to keep client-only code away from the server*/
 	//The following line is modified by the server code generator
-	public static BTHProxy proxy = new BTHProxy();
+	public static BTHProxy proxy = new BTHProxyClient();
 	
 	//Feel free to change this to something less likely to be overriden by Mojang in the future
 	//Or set it as a config option, whatever satisfies you
