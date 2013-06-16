@@ -1,5 +1,9 @@
 package net.minecraft.src;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 public class BTHBetterThanHorses extends FCAddOn 
 {
 	//A note for those working on the project: When decompiling BTW version 4.84 you will likely get a few errors
@@ -28,12 +32,96 @@ public class BTHBetterThanHorses extends FCAddOn
 		//Note: This needs to be disabled in the server version
 		RenderManager.AddEntityRenderer(BTHEntityHorse.class, new BTHRenderHorse(new BTHModelHorse()));
 		
-		FCAddOnHandler.LogMessage("Better Than Horses " + cVersion + "has been loaded.");
+		//Add horses to the list of spawnable animals
+		this.addSpawn(BTHEntityHorse.class, 10, 4, 4, EnumCreatureType.creature, createBiomeArrayForHorses());
+		
+		FCAddOnHandler.LogMessage("Better Than Horses " + cVersion + " has been loaded.");
 	}
 	
+	@Override
 	public void OnLanguageLoaded(StringTranslate aStringTranslator) 
 	{
 		//Add the name to the horse (so it doesn't appear in game as 'bthHorse')
 		aStringTranslator.GetTranslateTable().put("entity.bthHorse.name", "Horse");
+	}
+	
+	private BiomeGenBase[] createBiomeArrayForHorses()
+	{
+		List lBiomeList = new ArrayList();
+		
+		//The default list of biomes which animals spawn in. Feel free to change (like say, remove jungle, or whatnot)
+		lBiomeList.add(BiomeGenBase.plains);
+		lBiomeList.add(BiomeGenBase.extremeHills);
+		lBiomeList.add(BiomeGenBase.forest);
+		lBiomeList.add(BiomeGenBase.taiga);
+		lBiomeList.add(BiomeGenBase.swampland);
+		lBiomeList.add(BiomeGenBase.icePlains);
+		lBiomeList.add(BiomeGenBase.iceMountains);
+		lBiomeList.add(BiomeGenBase.forestHills);
+		lBiomeList.add(BiomeGenBase.taigaHills);
+		lBiomeList.add(BiomeGenBase.extremeHillsEdge);
+		lBiomeList.add(BiomeGenBase.jungle);
+		lBiomeList.add(BiomeGenBase.jungleHills);
+		
+		return (BiomeGenBase[])((BiomeGenBase[])lBiomeList.toArray(new BiomeGenBase[0]));
+	}
+	
+	/**The add spawn method, copied from Risugami's Modloader (http://www.minecraftforum.net/topic/75440-v152-risugamis-mods-updated/)
+	 * and modified slightly. This adds a entity (based on class) to the spawn list for an array of biomes.
+	 * 
+	 * @param aEntityClass - The class of the entity to add
+	 * @param aSpawnWeight - The weight of this mob spawning. Most mobs have a weight of 10
+	 * @param aMinGroupSize - The smallest size a group of the entity can spawn in
+	 * @param aMaxGroupSize - The largest size a group of the entity can spawn in
+	 * @param aCreatureType - The type of creature this is, which determines its spawning conditions. Options include
+	 * monster (hostile mobs), creature (animals), ambient (bats), and waterCreature (squid)
+	 * @param aBiomeArray - The array of biomes for which to make the entity spawn in. See BiomeGenBase for the full list
+	 */
+	public static void addSpawn(Class aEntityClass, int aSpawnWeight, int aMinGroupSize, int aMaxGroupSize, EnumCreatureType aCreatureType, BiomeGenBase[] aBiomeArray)
+	{
+		if (aEntityClass == null)
+		{
+			throw new IllegalArgumentException("entityClass cannot be null");
+		}
+		else if (aCreatureType == null)
+		{
+			throw new IllegalArgumentException("spawnList cannot be null");
+		}
+		else if (aBiomeArray == null)
+		{
+			throw new IllegalArgumentException("biomeArray cannot be null");
+		}
+		else
+		{
+			for (int iBiome = 0; iBiome < aBiomeArray.length; ++iBiome)
+			{
+				List lSpawnList = aBiomeArray[iBiome].getSpawnableList(aCreatureType);
+				
+				if (lSpawnList != null)
+				{
+					boolean lIsSpawnListed = false;
+					Iterator lSpawnIterator = lSpawnList.iterator();
+					
+					while (lSpawnIterator.hasNext())
+					{
+						SpawnListEntry lSpawnEntry = (SpawnListEntry)lSpawnIterator.next();
+						
+						if (lSpawnEntry.entityClass == aEntityClass)
+						{
+							lSpawnEntry.itemWeight = aSpawnWeight;
+							lSpawnEntry.minGroupCount = aMinGroupSize;
+							lSpawnEntry.maxGroupCount = aMaxGroupSize;
+							lIsSpawnListed = true;
+							break;
+						}
+					}
+					
+					if (!lIsSpawnListed)
+					{
+						lSpawnList.add(new SpawnListEntry(aEntityClass, aSpawnWeight, aMinGroupSize, aMaxGroupSize));
+					}
+				}
+			}
+		}
 	}
 }
