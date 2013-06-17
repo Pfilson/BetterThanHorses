@@ -477,6 +477,13 @@ public class BTHEntityHorse extends EntityAnimal
 		}
 	}
 	
+	//Used to make it look like the player is riding the horse rather than floating over it
+	@Override
+	public double getMountedYOffset()
+	{
+		return (double)this.height * 0.6D;//Feel free to tweak a bit
+	}
+	
 	@Override
 	public void onLivingUpdate()
 	{	
