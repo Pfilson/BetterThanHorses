@@ -40,16 +40,15 @@ public class BTHEntityHorse extends EntityAnimal
 	private static final int cMaxNormalWeightDamage = 100;//Damage the horse and throw the rider at this weight
 	private static final int cMaxNormalWeightThrow = 100;//Throw the rider at this weight
 	
-	//TODO: Make the aversion levels floats or doubles so that they can be slowly decrimented upon exposure
-	//TODO: set this to the proper level. Right now it is -1 so test horses don't run away from the player
-	/**The default range at which the horse will tolerate players*/
-	private static final int cAversionPlayerDefault = -1;
+	//TODO: set this to the proper level. Right now it is -16 so test horses don't run away from the player
+	/**The default range at which the horse will tolerate players, in 1/16 meter increments*/
+	private static final byte cAversionPlayerDefault = -16;
 	
-	/**The default range at which the horse will tolerate undead*/
-	private static final int cAversionUndeadDefault = 5;
+	/**The default range at which the horse will tolerate undead, in 1/16 meter increments*/
+	private static final byte cAversionUndeadDefault = 80;
 	
-	/**The default range at which the horse will tolerate fire*/
-	private static final int cAversionFireDefault = 5;
+	/**The default range at which the horse will tolerate fire, in 1/16 meter increments*/
+	private static final byte cAversionFireDefault = 80;
 	
 	/**The amount of hunger restored by eating grass*/
 	private static final int cHungerRestoredGrass = 2;
@@ -368,34 +367,49 @@ public class BTHEntityHorse extends EntityAnimal
 		return this.dataWatcher.getWatchableObjectByte(cDWStamina);
 	}
 	
-	public void setAversionPlayer(int aAversion)
+	/**Sets the horse's aversion level towards the player, in meters.
+	 * 
+	 * @param aAversion - the aversion level to assign to the horse, in meters. Max value of 7.9375, 
+	 * min value of -8.0.
+	 */
+	public void setAversionPlayer(float aAversion)
 	{
-		this.dataWatcher.updateObject(cDWAversionPlayer, Byte.valueOf((byte)aAversion));
+		dataWatcher.updateObject(cDWAversionPlayer, Byte.valueOf((byte)MathHelper.floor_float(aAversion * 16)));
 	}
 	
-	public int getAversionPlayer()
+	public float getAversionPlayer()
 	{
-		return this.dataWatcher.getWatchableObjectByte(cDWAversionPlayer);
+		return dataWatcher.getWatchableObjectByte(cDWAversionPlayer) / 16;
 	}
 	
-	public void setAversionUndead(int aAversion)
+	/**Sets the horse's aversion level towards the undead, in meters.
+	 * 
+	 * @param aAversion - the aversion level to assign to the horse, in meters. Max value of 7.9375, 
+	 * min value of -8.0.
+	 */
+	public void setAversionUndead(float aAversion)
 	{
-		this.dataWatcher.updateObject(cDWAversionUndead, Byte.valueOf((byte)aAversion));
+		dataWatcher.updateObject(cDWAversionUndead, Byte.valueOf((byte)MathHelper.floor_float(aAversion * 16)));
 	}
 	
-	public int getAversionUndead()
+	public float getAversionUndead()
 	{
-		return this.dataWatcher.getWatchableObjectByte(cDWAversionUndead);
+		return dataWatcher.getWatchableObjectByte(cDWAversionUndead) / 16;
 	}
 	
-	public void setAversionFire(int aAversion)
+	/**Sets the horse's aversion level towards fire, in meters.
+	 * 
+	 * @param aAversion - the aversion level to assign to the horse, in meters. Max value of 7.9375, 
+	 * min value of -8.0.
+	 */
+	public void setAversionFire(float aAversion)
 	{
-		this.dataWatcher.updateObject(cDWAversionFire, Byte.valueOf((byte)aAversion));
+		dataWatcher.updateObject(cDWAversionFire, Byte.valueOf((byte)MathHelper.floor_float(aAversion * 16)));
 	}
 	
-	public int getAversionFire()
+	public float getAversionFire()
 	{
-		return this.dataWatcher.getWatchableObjectByte(cDWAversionFire);
+		return dataWatcher.getWatchableObjectByte(cDWAversionFire) / 16;
 	}
 	
 	/**This method gets the total weight being applied to the horse taking into account player fat and armor, as well as horse fat.
@@ -517,12 +531,14 @@ public class BTHEntityHorse extends EntityAnimal
 			double lClosestThreatX = 0;
 			double lClosestThreatY = 0;
 			double lClosestThreatZ = 0;
+			boolean lIsAfraidOfThreat = true;
+			Entity lEntityToAttack = null;
 			float lClosestThreatDistanceSq = Float.POSITIVE_INFINITY;
 			
 			//Note, will run away even if it can't see the entity, possibly a problem, but low priority
-			if (getAversionUndead() > 0)
+			if (getAversionUndead() != 0)
 			{
-				List var1 = this.worldObj.getEntitiesWithinAABB(EntityZombie.class, this.boundingBox.expand(getAversionUndead(), 3.0D, getAversionUndead()));
+				List var1 = this.worldObj.getEntitiesWithinAABB(EntityZombie.class, this.boundingBox.expand(Math.abs(getAversionUndead()), 3.0D, Math.abs(getAversionUndead())));
 				if (var1 != null && var1.size() != 0)
 				{
 					Entity lEntity = (Entity)var1.get(0);
@@ -534,9 +550,15 @@ public class BTHEntityHorse extends EntityAnimal
 						lClosestThreatX = lEntity.posX;
 						lClosestThreatY = lEntity.posY;
 						lClosestThreatZ = lEntity.posZ;
+						
+						if (getAversionUndead() < 0)
+						{
+							lIsAfraidOfThreat = false;
+							lEntityToAttack = lEntity;
+						}
 					}
 				}
-				List var2 = this.worldObj.getEntitiesWithinAABB(EntitySkeleton.class, this.boundingBox.expand(getAversionUndead(), 3.0D, getAversionUndead()));
+				List var2 = this.worldObj.getEntitiesWithinAABB(EntitySkeleton.class, this.boundingBox.expand(Math.abs(getAversionUndead()), 3.0D, Math.abs(getAversionUndead())));
 				if (var2 != null && var2.size() != 0)
 				{
 					Entity lEntity = (Entity)var2.get(0);
@@ -547,6 +569,12 @@ public class BTHEntityHorse extends EntityAnimal
 						lClosestThreatX = lEntity.posX;
 						lClosestThreatY = lEntity.posY;
 						lClosestThreatZ = lEntity.posZ;
+						
+						if (getAversionUndead() < 0)
+						{
+							lIsAfraidOfThreat = false;
+							lEntityToAttack = lEntity;
+						}
 					}
 				}
 			}
@@ -564,29 +592,27 @@ public class BTHEntityHorse extends EntityAnimal
 						lClosestThreatX = lEntity.posX;
 						lClosestThreatY = lEntity.posY;
 						lClosestThreatZ = lEntity.posZ;
+						lIsAfraidOfThreat = true;
 					}
 				}
 			}
 			
 			if (getAversionFire() > 0)
 			{
-				int lAversionFire = getAversionFire();
-				int lPosX = MathHelper.floor_double(this.posX);
-				int lPosY = MathHelper.floor_double(this.posY);
-				int lPosZ = MathHelper.floor_double(this.posZ);
+				float lAversionFire = getAversionFire();
 				float lBestDistanceFireSq = Float.POSITIVE_INFINITY;
 				float lCurrentDistanceFireSq;
 				ChunkCoordinates lClosestFire = new ChunkCoordinates();
 				
-				for (int iX = lPosX - lAversionFire; iX <= lPosX + lAversionFire; iX++)
+				for (int iX = MathHelper.floor_double(this.posX - lAversionFire); iX <= MathHelper.ceiling_double_int(this.posX + lAversionFire); iX++)
 				{
-					for (int iY = lPosY - lAversionFire; iY <= lPosY + lAversionFire; iY++)
+					for (int iY = MathHelper.floor_double(this.posY - lAversionFire); iY <= MathHelper.ceiling_double_int(this.posX + lAversionFire); iY++)
 					{
-						for (int iZ = lPosZ - lAversionFire; iZ <= lPosZ + lAversionFire; iZ++)
+						for (int iZ = MathHelper.floor_double(this.posZ - lAversionFire); iZ <= MathHelper.ceiling_double_int(this.posX + lAversionFire); iZ++)
 						{
 							if (this.worldObj.getBlockMaterial(iX, iY, iZ) == Material.fire)
 							{
-								lCurrentDistanceFireSq = (lPosX - iX)*(lPosX - iX) + (lPosY - iY)*(lPosY - iY) + (lPosZ - iZ)*(lPosZ - iZ);
+								lCurrentDistanceFireSq = (((float)this.posX - iX)*((float)this.posX - iX) + ((float)this.posY - iY)*((float)this.posY - iY) + ((float)this.posZ - iZ)*((float)this.posZ - iZ));
 								
 								if (lCurrentDistanceFireSq < lBestDistanceFireSq)
 								{
@@ -609,6 +635,7 @@ public class BTHEntityHorse extends EntityAnimal
 						lClosestThreatX = lClosestFire.posX;
 						lClosestThreatY = lClosestFire.posY;
 						lClosestThreatZ = lClosestFire.posZ;
+						lIsAfraidOfThreat = true;
 					}
 				}
 			}
@@ -616,14 +643,25 @@ public class BTHEntityHorse extends EntityAnimal
 			//Now that we've found the closest threat, lets avoid it
 			if (lClosestThreatDistanceSq < Float.POSITIVE_INFINITY)
 			{
-				Vec3 lDestination = RandomPositionGenerator.findRandomTargetBlockAwayFrom(this, 16, 7, this.worldObj.getWorldVec3Pool().getVecFromPool(lClosestThreatX, lClosestThreatY, lClosestThreatZ));
+				Vec3 lDestination;
 				
-				//Check to make sure the destination isn't null and that it's farther away from the threat compared to before
-				if (lDestination != null && this.getDistanceSq(lDestination.xCoord, lDestination.yCoord, lDestination.zCoord) > lClosestThreatDistanceSq)
+				if (lIsAfraidOfThreat) //Run away from threat
 				{
-					this.getNavigator().setPath(this.getNavigator().getPathToXYZ(lDestination.xCoord, lDestination.yCoord, lDestination.zCoord), 0.25F);//Note: 0.25F is the speed
-					lIsTasking = true;
+					lDestination = RandomPositionGenerator.findRandomTargetBlockAwayFrom(this, 16, 7, this.worldObj.getWorldVec3Pool().getVecFromPool(lClosestThreatX, lClosestThreatY, lClosestThreatZ));
+					
+					//Check to make sure the destination isn't null and that it's farther away from the threat compared to before, if the entity is afraid of the 'threat'
+					if (lDestination != null && this.getDistanceSq(lDestination.xCoord, lDestination.yCoord, lDestination.zCoord) > lClosestThreatDistanceSq)
+					{
+						this.getNavigator().setPath(this.getNavigator().getPathToXYZ(lDestination.xCoord, lDestination.yCoord, lDestination.zCoord), 0.25F);//Note: 0.25F is the speed
+					}
 				}
+				else //Attack 'threat'
+				{
+					//TODO: add code to make the horse attack the 'threat'
+					//if (lEntityToAttack != null) this.setTarget(lEntityToAttack);
+				}
+				
+				lIsTasking = true;
 			}	
 		}
 		//End of 'avoid threats' section
