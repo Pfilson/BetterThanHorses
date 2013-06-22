@@ -69,10 +69,12 @@ public class BTHEntityHorse extends EntityAnimal
 	private static final int cDWHunger = 25;
 	private static final int cDWFat = 26;
 	private static final int cDWStamina = 27;
-	private static final int cDWOtherFlags = 28;
 	private static final int cDWAversionPlayer = 29;
 	private static final int cDWAversionUndead = 30;
 	private static final int cDWAversionFire = 31;
+	
+	//Available flag numbers are 6 and 7
+	private static final int cGenderFlag = 7;
 	
 	public BTHEntityHorse(World par1World)
 	{
@@ -116,8 +118,6 @@ public class BTHEntityHorse extends EntityAnimal
 		this.dataWatcher.addObject(cDWHunger, Byte.valueOf((byte)cMaxHunger));
 		this.dataWatcher.addObject(cDWFat, Byte.valueOf((byte)0));
 		this.dataWatcher.addObject(cDWStamina, Byte.valueOf((byte)cMaxStamina));
-		//TODO: May be able to get rid of this oject and instead use the Flags object
-		this.dataWatcher.addObject(cDWOtherFlags, Byte.valueOf((byte)0));
 		
 		//Make half the horses male when spawning
 		if (rand.nextBoolean()) setIsMale(true);
@@ -140,7 +140,6 @@ public class BTHEntityHorse extends EntityAnimal
 		par1NBTTagCompound.setInteger("AversionPlayer", this.getStamina());
 		par1NBTTagCompound.setInteger("AversionUndead", this.getStamina());
 		par1NBTTagCompound.setInteger("AversionFire", this.getStamina());
-		par1NBTTagCompound.setByte("OtherFlags", this.dataWatcher.getWatchableObjectByte(cDWOtherFlags));
 	}
 	
 	/**
@@ -156,7 +155,6 @@ public class BTHEntityHorse extends EntityAnimal
 		this.setHunger(par1NBTTagCompound.getInteger("AversionPlayer"));
 		this.setHunger(par1NBTTagCompound.getInteger("AversionUndead"));
 		this.setHunger(par1NBTTagCompound.getInteger("AversionFire"));
-		this.dataWatcher.updateObject(cDWOtherFlags, Byte.valueOf(par1NBTTagCompound.getByte("OtherFlags")));
 	}
 	
 	//TODO: Need to add custom sounds
@@ -257,7 +255,7 @@ public class BTHEntityHorse extends EntityAnimal
 	 */
 	public boolean getIsMale()
 	{
-		return (this.dataWatcher.getWatchableObjectByte(cDWOtherFlags) & 1) == 1;
+		return this.getFlag(cGenderFlag);
 	}
 	
 	/**A method to set the isMale flag.
@@ -266,12 +264,7 @@ public class BTHEntityHorse extends EntityAnimal
 	 */
 	public void setIsMale(boolean aIsMale)
 	{
-		byte lOtherFlags = this.dataWatcher.getWatchableObjectByte(cDWOtherFlags);
-		
-		if (aIsMale) lOtherFlags |= 1;
-		else lOtherFlags &= ~1;
-		
-		this.dataWatcher.updateObject(cDWOtherFlags, Byte.valueOf(lOtherFlags));
+		this.setFlag(cGenderFlag, aIsMale);
 	}
 	
 	/**A method to determine the current health status of the horse. Returns a 0 if normal, a 1 if lamed, and a 2
@@ -773,7 +766,6 @@ public class BTHEntityHorse extends EntityAnimal
 		//End of 'breeding' section
 		
 		//'Update health/hunger/etc' section
-		//TODO: fix up the getTotalHorseLoad method
 		int lWeight = this.getTotalHorseLoad(lRider);
 		long lTime = worldObj.getWorldTime();
 		
