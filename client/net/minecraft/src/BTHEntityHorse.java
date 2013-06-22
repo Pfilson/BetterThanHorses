@@ -407,14 +407,15 @@ public class BTHEntityHorse extends EntityAnimal
 		return dataWatcher.getWatchableObjectByte(cDWAversionFire) / 16;
 	}
 	
-	/**This method gets the total weight being applied to the horse taking into account player fat and armor, as well as horse fat.
+	/**This method gets the total weight being applied to the horse, only taking into account player armor.
 	 * 
 	 * @param aRider - the player riding the horse, null if there isn't one
 	 */
-	//TODO: setup this method (something along the lines of aRider.getWornArmorWeight() + aRider.foodStats.getSaturation + getFat();
+	//TODO: may add player and horse fat levels as considerations in this method
 	public int getTotalHorseLoad(EntityPlayer aRider)
-	{
-		return 0;
+	{	
+		if (aRider == null) return 0;
+		else return MathHelper.floor_float((aRider.GetArmorExhaustionModifier() - 1) * 44.0F);
 	}
 	
 	//TODO: Possibly change this, maybe not.

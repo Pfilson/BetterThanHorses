@@ -11,7 +11,7 @@ public class BTHBetterThanHorses extends FCAddOn
 	//this.entityLivingToAttack wherever it is shown to cause an error.
 	
 	/**The better than horses addon instance*/
-	public static BTHBetterThanHorses instance = new BTHBetterThanHorses();
+	//public static BTHBetterThanHorses instance = new BTHBetterThanHorses();
 	
 	/**Used to keep client-only code away from the server*/
 	//The following line is modified by the server code generator
