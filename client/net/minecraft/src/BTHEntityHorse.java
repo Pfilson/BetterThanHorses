@@ -59,9 +59,6 @@ public class BTHEntityHorse extends EntityAnimal
 	/**The distance (in blocks/meters) that a horse will search for grass and items to eat*/
 	private static final double cFoodSearchRange = 5.0D;
 	
-	/**The range in which a horse will eat food off of the ground, squared*/
-	private static final double cFoodEatRangeSq = 1.0D;
-	
 	/**The range in which a male horse will attempt to fight other male horses*/
 	private static final double cMaleFightingRange = 5.0D;
 	
@@ -501,6 +498,37 @@ public class BTHEntityHorse extends EntityAnimal
 	}
 	
 	@Override
+	public void CheckForLooseFood()
+	{
+		List lItemEntityList = worldObj.getEntitiesWithinAABB(EntityItem.class, AxisAlignedBB.getAABBPool().getAABB(this.posX - 2.5D, this.posY - 1.0D, this.posZ - 2.5D, this.posX + 2.5D, this.posY + 1.0D, this.posZ + 2.5D));
+		
+		if (!lItemEntityList.isEmpty())
+		{
+			for (int iItemEntityList = 0; iItemEntityList < lItemEntityList.size(); ++iItemEntityList)
+			{
+				EntityItem lCurrentItemEntity = (EntityItem)lItemEntityList.get(iItemEntityList);
+				
+				if (lCurrentItemEntity.delayBeforeCanPickup == 0 && !lCurrentItemEntity.isDead)
+				{
+					ItemStack lCurrentItem = lCurrentItemEntity.getEntityItem();
+					
+					if (lCurrentItem != null && cHungerRestoredItem[lCurrentItem.itemID] > 0)
+					{
+						--lCurrentItem.stackSize;
+						
+						if (lCurrentItem.stackSize <= 0) lCurrentItemEntity.setDead();
+						
+						adjustHunger(cHungerRestoredItem[lCurrentItem.itemID]);
+						
+						worldObj.playSoundAtEntity(this, "random.pop", 0.25F, ((worldObj.rand.nextFloat() - worldObj.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	@Override
 	public void onLivingUpdate()
 	{
 		boolean lIsTasking = false;
@@ -670,36 +698,6 @@ public class BTHEntityHorse extends EntityAnimal
 			//Most likely this will require the client sending a custom packet to the server describing which of these keys are being pressed.
 		}
 		//End of 'being ridden' section
-		
-		//The 'eat items' section
-		if (!lIsTasking)
-		{
-			List lItemEntityList = this.worldObj.getEntitiesWithinAABB(EntityItem.class, (this.boundingBox.expand(this.cFoodSearchRange, 3.0D, this.cFoodSearchRange)));
-			Iterator lItemEntityIterator = lItemEntityList.iterator();
-			
-			while (lItemEntityIterator.hasNext())
-			{
-				EntityItem lCurrentItemEntity = (EntityItem)lItemEntityIterator.next();
-				ItemStack lCurrentItem = lCurrentItemEntity.getEntityItem();
-				if (cHungerRestoredItem[lCurrentItem.itemID] > 0)
-				{
-					//If the food is within eating range, go ahead and eat the whole stack
-					if (this.getDistanceSqToEntity(lCurrentItemEntity) < this.cFoodEatRangeSq)
-					{
-						this.adjustHunger(cHungerRestoredItem[lCurrentItem.itemID] * lCurrentItem.stackSize);
-						lCurrentItemEntity.setDead();
-						//TODO: Add eating sound
-					}
-					//Otherwise, path towards it so that you can eat it soon after
-					else
-					{
-						this.getNavigator().setPath(this.getNavigator().getPathToXYZ(lCurrentItemEntity.posX, lCurrentItemEntity.posY, lCurrentItemEntity.posZ), 0.25F);//Note: 0.25F is the speed
-						lIsTasking = true;
-					}
-				}
-			}
-		}
-		//End of 'eat items' section
 		
 		//The 'eat grass' section
 		//I seem to be having problems with the horses pathing to grass, they get there but are not aligned exactly with the block so they don't eat the grass
