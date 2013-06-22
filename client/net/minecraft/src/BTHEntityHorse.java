@@ -219,17 +219,12 @@ public class BTHEntityHorse extends EntityAnimal
 	@Override
 	protected void fall(float aDistanceFallen)
 	{
-		int lTempDamage = 0;
-		//TODO: Create isGalloping method, might just use the sprinting check
-		//if (isGalloping());
-		{
-			lTempDamage = MathHelper.ceiling_float_int(aDistanceFallen - 1.0F);
-		}
-		//else
-		{
-			lTempDamage = MathHelper.ceiling_float_int(aDistanceFallen - 3.0F);
-		}
-		super.fall(lTempDamage);
+		if (isGalloping()) aDistanceFallen += 1.5F; //If galloping, take damage after 1.5 meters
+		else aDistanceFallen += 0.5F; //Otherwise, take damage after 2.5 meters
+		
+		//I'm considering making fall damage exponential after this point, to make horses even more susceptible to fall damage
+		
+		super.fall(aDistanceFallen);
 	}
 	
 	/**
@@ -513,7 +508,7 @@ public class BTHEntityHorse extends EntityAnimal
 	
 	@Override
 	public void onLivingUpdate()
-	{	
+	{
 		boolean lIsTasking = false;
 		int lHealthStatus = this.getHealthStatus();
 		
