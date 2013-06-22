@@ -28,9 +28,9 @@ public class BTHBetterThanHorses extends FCAddOn
 	@Override
 	public void Initialize() 
 	{
-		//Add the horse to the entity list
-		//TODO: possibly add a mob spawner egg to assist in testing
+		//Add the horse to the entity list and add a spawning egg for them
 		EntityList.addMapping(BTHEntityHorse.class, "bthHorse", cHorseEntityID);
+		EntityList.entityEggs.put(Integer.valueOf(cHorseEntityID), new EntityEggInfo(cHorseEntityID, 0x7F462C, 0x000000));
 		
 		//Add the renderer for the horse entity
 		proxy.addEntityRenderers();
