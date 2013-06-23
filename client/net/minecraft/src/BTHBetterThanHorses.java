@@ -1,14 +1,27 @@
 package net.minecraft.src;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
 
 public class BTHBetterThanHorses extends FCAddOn 
 {
 	//A note for those working on the project: When decompiling BTW version 4.84 you will likely get a few errors
 	//related to the EntityAnimal class. To fix these, replace the variable this.breeding with
 	//this.entityLivingToAttack wherever it is shown to cause an error.
+	
+	//Modifies NetServerHandler.class
+	//--Insert a newline after line 1174
+	//--Copy and paste the following line
+	//else BTHBetterThanHorses.ServerCustomPacketReceived(this.mcServer, this.playerEntity, par1Packet250CustomPayload);
+	//
+	//We may need to request a BTW hook for this depending on whether BTW already modifies this class (I'm not 100% sure)
 	
 	/**The better than horses addon instance*/
 	//public static BTHBetterThanHorses instance = new BTHBetterThanHorses();
@@ -20,6 +33,8 @@ public class BTHBetterThanHorses extends FCAddOn
 	//Feel free to change this to something less likely to be overriden by Mojang in the future
 	//Or set it as a config option, whatever satisfies you
 	private static int cHorseEntityID = 30;
+	
+	public static String cControlPacketID = "BTH|CP";
 	
 	//We still need a standardized version naming scheme...
 	/**The version number of this version of Better Than Horses*/
@@ -46,6 +61,37 @@ public class BTHBetterThanHorses extends FCAddOn
 	{
 		//Add the name to the horse (so it doesn't appear in game as 'bthHorse')
 		aStringTranslator.GetTranslateTable().put("entity.bthHorse.name", "Horse");
+	}
+	
+	/**This function is called whenever the server receives a custom packet that isn't one of its own. Use this to send packets from client to server.
+	 * 
+	 * @param aMCS - the minecraft server instance
+	 * @param aPlayer - the server player
+	 * @param aCustomPacket - the custom packet
+	 */
+	public static void ServerCustomPacketReceived(MinecraftServer aMCS, EntityPlayerMP aPlayer, Packet250CustomPayload aCustomPacket)
+	{
+		if (cControlPacketID.equals(aCustomPacket.channel))
+		{
+			try
+			{
+				DataInputStream lCustomPacketRead = new DataInputStream(new ByteArrayInputStream(aCustomPacket.data));
+				
+				boolean lIsLeftPressed = lCustomPacketRead.readBoolean();
+				boolean lIsRightPressed = lCustomPacketRead.readBoolean();
+				boolean lIsJumpPressed = lCustomPacketRead.readBoolean();
+				boolean lIsBackPressed = lCustomPacketRead.readBoolean();
+				
+				if (aPlayer.ridingEntity != null && aPlayer.ridingEntity instanceof BTHEntityHorse)
+				{
+					((BTHEntityHorse)aPlayer.ridingEntity).recieveControlPacket(lIsLeftPressed, lIsRightPressed, lIsJumpPressed, lIsBackPressed);
+				}
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private BiomeGenBase[] createBiomeArrayForHorses()

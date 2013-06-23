@@ -1,7 +1,12 @@
 package net.minecraft.src;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+
+import net.minecraft.client.Minecraft;
 
 public class BTHEntityHorse extends EntityAnimal
 {
@@ -55,6 +60,9 @@ public class BTHEntityHorse extends EntityAnimal
 	
 	/**The delay between healing one half heart, measured in ticks (20 ticks = 1 second)*/
 	private static final int cHealingDelay = 20;
+	
+	/**The amount of strafing the horse undergoes when the left or right keys are pressed*/
+	private static final int cStrafingAmount = 5;
 	
 	/**The distance (in blocks/meters) that a horse will search for grass and items to eat*/
 	private static final double cFoodSearchRange = 5.0D;
@@ -694,8 +702,35 @@ public class BTHEntityHorse extends EntityAnimal
 			//An alternitive is to set the path to the look vector, ala this.getNavigator().setPath(this.getNavigator().getPathToXYZ(lLookDirection.xCoord, lLookDirection.yCoord, lLookDirection.zCoord), 0.25F);
 			this.moveEntity(lLookDirection.xCoord * lMovementFactor, lLookDirection.yCoord * lMovementFactor, lLookDirection.zCoord * lMovementFactor);
 			
-			//TODO: need to add the other controls for moving the horse, such as left/right for strafing and jump for gallop.
-			//Most likely this will require the client sending a custom packet to the server describing which of these keys are being pressed.
+			if (worldObj.isRemote) //If client world, send player control packet
+			{
+				boolean lIsLeftPressed = false;
+				boolean lIsRightPressed = false;
+				boolean lIsJumpPressed = false;
+				boolean lIsBackPressed = false;
+				
+				if (lRider.moveStrafing > 0) lIsLeftPressed = true;
+				if (lRider.moveStrafing < 0) lIsRightPressed = true;
+				if (lRider.isJumping) lIsJumpPressed = true;
+				if (lRider.moveForward < 0) lIsBackPressed = true;
+				
+				try
+				{
+					ByteArrayOutputStream lCustomPacketData = new ByteArrayOutputStream();
+					DataOutputStream lCustomPacketWrite = new DataOutputStream(lCustomPacketData);
+					
+					lCustomPacketWrite.writeBoolean(lIsLeftPressed);
+					lCustomPacketWrite.writeBoolean(lIsRightPressed);
+					lCustomPacketWrite.writeBoolean(lIsJumpPressed);
+					lCustomPacketWrite.writeBoolean(lIsBackPressed);
+					
+					Minecraft.getMinecraft().getNetHandler().addToSendQueue(new Packet250CustomPayload(BTHBetterThanHorses.cControlPacketID, lCustomPacketData.toByteArray()));
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
 		}
 		//End of 'being ridden' section
 		
@@ -796,6 +831,36 @@ public class BTHEntityHorse extends EntityAnimal
 		//End of 'update health/hunger/etc' section
 		
 		super.onLivingUpdate();
+	}
+	
+	/**A function called whenever a control packet is received. This function effectively takes care of the controls section of the horse's AI.
+	 * 
+	 * @param aIsLeftPressed - true if the left key is being pressed
+	 * @param aIsRightPressed - true if the right key is pressed
+	 * @param aIsJumpPressed - true if the jump key is pressed
+	 * @param aIsBackPressed - true if the back key is pressed
+	 */
+	public void recieveControlPacket(boolean aIsLeftPressed, boolean aIsRightPressed, boolean aIsJumpPressed, boolean aIsBackPressed)
+	{
+		int lDeltaYaw = 0;
+		float lPreviousYaw = this.rotationYaw;
+		
+		if (aIsLeftPressed) lDeltaYaw -= cStrafingAmount;
+		if (aIsRightPressed) lDeltaYaw += cStrafingAmount;
+		
+		this.rotationYaw = MathHelper.wrapAngleTo180_float(this.rotationYaw + lDeltaYaw);
+		
+		if (aIsJumpPressed)
+		{
+			//if galloping, jump
+			//else, enter gallop
+		}
+		
+		if (aIsBackPressed)
+		{
+			//if galloping, stop galloping
+			//else, stop moving (set lIsTasking to true most likely)
+		}
 	}
 	
 	static
