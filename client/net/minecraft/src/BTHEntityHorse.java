@@ -64,6 +64,12 @@ public class BTHEntityHorse extends EntityAnimal
 	/**The amount of strafing the horse undergoes when the left or right keys are pressed*/
 	private static final int cStrafingAmount = 5;
 	
+	/**The modifier which determines how fast the horse moves when walking*/
+	private static final float cMoveWalkAmount = 0.1F;
+	
+	/**The modifier which determines how fast the horse moves when galloping*/
+	private static final float cMoveGallopAmount = 0.2F;
+	
 	/**The distance (in blocks/meters) that a horse will search for grass and items to eat*/
 	private static final double cFoodSearchRange = 5.0D;
 	
@@ -79,6 +85,7 @@ public class BTHEntityHorse extends EntityAnimal
 	private static final int cDWAversionFire = 31;
 	
 	//Available flag numbers are 6 and 7
+	private static final int cGallopFlag = 6;
 	private static final int cGenderFlag = 7;
 	
 	public BTHEntityHorse(World par1World)
@@ -416,10 +423,14 @@ public class BTHEntityHorse extends EntityAnimal
 		else return MathHelper.floor_float((aRider.GetArmorExhaustionModifier() - 1) * 44.0F);
 	}
 	
-	//TODO: Possibly change this, maybe not.
+	public void setGalloping(boolean aShouldGallop)
+	{
+		this.setFlag(cGallopFlag, aShouldGallop);
+	}
+	
 	public boolean isGalloping()
 	{
-		return this.isSprinting();
+		return this.getFlag(cGallopFlag);
 	}
 	
 	@Override
@@ -694,13 +705,13 @@ public class BTHEntityHorse extends EntityAnimal
 		//'Being ridden' section
 		if (lRider != null)
 		{
-			double lMovementFactor = 0.1;
-			float lRotationFactor = 5.0F;
 			Vec3 lLookDirection = this.getLookVec();
+			//TODO: I may make this slowly adjust, to prevent it from looking unnatural
+			float lMoveAmount = isGalloping() ? cMoveGallopAmount : cMoveWalkAmount;
 			
 			//Causes the horse to move in the direction it is facing while being ridden.
 			//An alternitive is to set the path to the look vector, ala this.getNavigator().setPath(this.getNavigator().getPathToXYZ(lLookDirection.xCoord, lLookDirection.yCoord, lLookDirection.zCoord), 0.25F);
-			this.moveEntity(lLookDirection.xCoord * lMovementFactor, lLookDirection.yCoord * lMovementFactor, lLookDirection.zCoord * lMovementFactor);
+			this.moveEntity(lLookDirection.xCoord * lMoveAmount, lLookDirection.yCoord * lMoveAmount, lLookDirection.zCoord * lMoveAmount);
 			
 			if (worldObj.isRemote) //If client world, send player control packet
 			{
@@ -730,6 +741,9 @@ public class BTHEntityHorse extends EntityAnimal
 				{
 					e.printStackTrace();
 				}
+				
+				//Run this on the client to prevent syncing issues.
+				this.recieveControlPacket(lIsLeftPressed, lIsRightPressed, lIsJumpPressed, lIsBackPressed);
 			}
 		}
 		//End of 'being ridden' section
@@ -852,14 +866,21 @@ public class BTHEntityHorse extends EntityAnimal
 		
 		if (aIsJumpPressed)
 		{
-			//if galloping, jump
-			//else, enter gallop
+			if (isGalloping())
+			{
+				//jump
+			}
+			else setGalloping(true);
 		}
 		
 		if (aIsBackPressed)
 		{
-			//if galloping, stop galloping
-			//else, stop moving (set lIsTasking to true most likely)
+			if (isGalloping()) setGalloping(false);
+			else
+			{
+				//else, stop moving (set lIsTasking to true most likely)
+			}
+			
 		}
 	}
 	
