@@ -1,39 +1,20 @@
 package net.minecraft.src;
 
-import java.lang.reflect.Field;
-
 public class BTHEntityAIWatchClosest extends EntityAIWatchClosest
 {
-	/**The offset of the main entity field in the superclass. See net.minecraft.src.EntityAIWatchClosest*/
-	private static int cEntityFieldOffset = 0;
-	
 	/**The entity executing this task*/
 	private EntityLiving theEntity;
 	
-	public BTHEntityAIWatchClosest(EntityLiving par1EntityLiving, Class par2Class, float par3)
+	public BTHEntityAIWatchClosest(EntityLiving aEntity, Class aTargetClass, float aLookRange)
 	{
-		this(par1EntityLiving, par2Class, par3, 0.2F);
+		this(aEntity, aTargetClass, aLookRange, 0.02F);
 	}
 	
-	public BTHEntityAIWatchClosest(EntityLiving par1EntityLiving, Class par2Class, float par3, float par4)
+	public BTHEntityAIWatchClosest(EntityLiving aEntity, Class aTargetClass, float aLookRange, float aFrequency)
 	{
-		super(par1EntityLiving, par2Class, par3, par4);
+		super(aEntity, aTargetClass, aLookRange, aFrequency);
 		
-		try 
-		{
-			//Grab the private entity object
-			Field lTheEntityField = this.getClass().getSuperclass().getDeclaredFields()[cEntityFieldOffset];
-			lTheEntityField.setAccessible(true);
-			theEntity = (EntityLiving)lTheEntityField.get(this);
-		}
-		catch (IllegalArgumentException e)
-		{
-			e.printStackTrace();
-		}
-		catch (IllegalAccessException e)
-		{
-			e.printStackTrace();
-		}
+		theEntity = aEntity;
 	}
 	
 	public boolean shouldExecute()
