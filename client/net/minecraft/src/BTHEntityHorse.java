@@ -189,23 +189,46 @@ public class BTHEntityHorse extends EntityAnimal
 	@Override
 	protected void playStepSound(int par1, int par2, int par3, int par4) {}
 	
-	//TODO: Saddling the horse, feeding the horse items, etc.
+	//TODO: Saddling the horse, possibly other interactions.
 	@Override
 	public boolean interact(EntityPlayer aPlayer)
 	{
-		if (super.interact(aPlayer))
+		//Handle hand feeding
+		if (aPlayer.getHeldItem() != null && cHungerRestoredItem[aPlayer.getHeldItem().itemID] > 0)
 		{
+			adjustHunger(cHungerRestoredItem[aPlayer.getHeldItem().itemID]);
+			//TODO: Possibly add eating/burping sounds
+			//Like this? worldObj.playAuxSFX(2226, MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ), 0);
+			
+			aPlayer.getHeldItem().stackSize--;
+			if (aPlayer.getHeldItem().stackSize <= 0)
+			{
+				aPlayer.inventory.setInventorySlotContents(aPlayer.inventory.currentItem, (ItemStack)null);
+			}
+			
 			return true;
 		}
-		else if (!this.worldObj.isRemote && (this.riddenByEntity == null || this.riddenByEntity == aPlayer))
+		
+		//Handle castration
+		else if (aPlayer.getHeldItem() != null && aPlayer.getHeldItem().itemID == Item.shears.itemID && getIsMale()) //&& !this.getIsCastrated()
+		{
+			//TODO: add castrated flag and methods, like below
+			//this.setIsCastrated(true)
+			playSound("mob.sheep.shear", 1.0F, 1.0F);
+			playSound(getHurtSound(), 1.0F, 1.0F);
+			aPlayer.getHeldItem().damageItem(1, aPlayer);
+			return true;
+		}
+		
+		//Handle mounting the horse
+		else if (!worldObj.isRemote && !isChild() && (riddenByEntity == null || riddenByEntity == aPlayer))
 		{
 			aPlayer.mountEntity(this);
 			return true;
 		}
-		else
-		{
-			return false;
-		}
+		
+		//Handle normal interactions
+		else return super.interact(aPlayer);
 	}
 	
 	//TODO: Change to horse drops
