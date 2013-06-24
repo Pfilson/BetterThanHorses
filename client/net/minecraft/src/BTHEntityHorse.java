@@ -104,9 +104,7 @@ public class BTHEntityHorse extends EntityAnimal
 		//Might not be too hard to modify, but will require saving the actual parent to the nbt
 		this.tasks.addTask(4, new EntityAIFollowParent(this, 0.25F));
 		this.tasks.addTask(5, new EntityAIWander(this, 0.2F));
-		//TODO:May need to scrap or modify so that it doesn't execute while the player is riding
-		//the horse, cause that looks really weird.
-		this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+		this.tasks.addTask(6, new BTHEntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
 		this.tasks.addTask(7, new EntityAILookIdle(this));
 	}
 	
