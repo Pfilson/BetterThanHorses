@@ -576,6 +576,14 @@ public class BTHEntityHorse extends EntityAnimal
 	}
 	
 	@Override
+	protected boolean isMovementBlocked()
+	{
+		//Used to prevent crippled horses from moving
+		if (getHealthStatus() == 2) return true;
+		else return super.isMovementBlocked();
+	}
+	
+	@Override
 	public void CheckForLooseFood()
 	{
 		List lItemEntityList = worldObj.getEntitiesWithinAABB(EntityItem.class, AxisAlignedBB.getAABBPool().getAABB(this.posX - 2.5D, this.posY - 1.0D, this.posZ - 2.5D, this.posX + 2.5D, this.posY + 1.0D, this.posZ + 2.5D));
@@ -619,12 +627,8 @@ public class BTHEntityHorse extends EntityAnimal
 		if (!getIsMale()) addPotionEffect(new PotionEffect(Potion.digSpeed.id, 2)); //2 ticks of 'haste' for females
 		else if (!getIsGeld()) addPotionEffect(new PotionEffect(Potion.blindness.id, 2)); //2 ticks of 'blindness' for males
 		
-		//Used to prevent crippled horses from moving
-		if (lHealthStatus == 2) lIsTasking = true;
-		
 		//The 'avoid threats' section
 		//TODO: Still need to add condition so that horses will attack undead if the aversion is negative
-		//TODO: Need to make aversion slowly decrease when the horse is exposed to its source
 		if (!lIsTasking)
 		{
 			double lClosestThreatX = 0;
@@ -968,7 +972,6 @@ public class BTHEntityHorse extends EntityAnimal
 			{
 				//else, stop moving (set lIsTasking to true most likely)
 			}
-			
 		}
 	}
 	
