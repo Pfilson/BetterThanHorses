@@ -63,7 +63,10 @@ public class BTHEntityHorse extends EntityAnimal
 	
 	/**The amount of aversion decrimented when exposed to the source of the aversion*/
 	//TODO: Mess around with this a bit, it determines how fast a horse trains out its fears
-	private static final float cAversionDecrimentFactor = 0.01F;
+	private static final float cAversionDecrementFactor = 0.01F;
+	
+	/**The level of 'aversion' towards the player at which the horse is considered 'broken'*/
+	private static final float cAversionPlayerBroken = -5.0F;
 	
 	/**The amount of strafing the horse undergoes when the left or right keys are pressed*/
 	private static final int cStrafingAmount = 5;
@@ -581,6 +584,10 @@ public class BTHEntityHorse extends EntityAnimal
 		EntityPlayer lRider = null;
 		if (riddenByEntity != null && riddenByEntity instanceof EntityPlayer) lRider = (EntityPlayer)riddenByEntity;
 		
+		//TODO: add some better way of differentiating males and females
+		if (!getIsMale()) addPotionEffect(new PotionEffect(Potion.digSpeed.id, 2)); //2 ticks of 'haste' for females
+		else addPotionEffect(new PotionEffect(Potion.blindness.id, 2)); //2 ticks of 'blindness' for males
+		
 		//Used to prevent crippled horses from moving
 		if (lHealthStatus == 2) lIsTasking = true;
 		
@@ -730,9 +737,9 @@ public class BTHEntityHorse extends EntityAnimal
 				}
 				
 				//Decrease aversion based on how close the aversion source is to the horse (closer equals a greater decrease)
-				if (lThreatType == 1) setAversionPlayer(getAversionPlayer() - cAversionDecrimentFactor / lClosestThreatDistanceSq);
-				if (lThreatType == 2) setAversionUndead(getAversionUndead() - cAversionDecrimentFactor / lClosestThreatDistanceSq);
-				if (lThreatType == 3) setAversionFire(getAversionFire() - cAversionDecrimentFactor / lClosestThreatDistanceSq);
+				if (lThreatType == 1) setAversionPlayer(getAversionPlayer() - cAversionDecrementFactor / lClosestThreatDistanceSq);
+				if (lThreatType == 2) setAversionUndead(getAversionUndead() - cAversionDecrementFactor / lClosestThreatDistanceSq);
+				if (lThreatType == 3) setAversionFire(getAversionFire() - cAversionDecrementFactor / lClosestThreatDistanceSq);
 				
 				lIsTasking = true;
 			}	
@@ -749,6 +756,19 @@ public class BTHEntityHorse extends EntityAnimal
 			//Causes the horse to move in the direction it is facing while being ridden.
 			//An alternitive is to set the path to the look vector, ala this.getNavigator().setPath(this.getNavigator().getPathToXYZ(lLookDirection.xCoord, lLookDirection.yCoord, lLookDirection.zCoord), 0.25F);
 			this.moveEntity(lLookDirection.xCoord * lMoveAmount, lLookDirection.yCoord * lMoveAmount, lLookDirection.zCoord * lMoveAmount);
+			
+			//Causes the horse to move randomly if it is not 'broken'
+			//TODO: may add some additional 'resisting' code down in the recieveControlPacket section
+			float lRandomMovementFactor = getAversionPlayer() - cAversionPlayerBroken;
+			
+			if (worldObj.rand.nextInt(MathHelper.floor_float(lRandomMovementFactor * 100)) == 0)
+			{
+				if (lRandomMovementFactor > 0)
+				{
+					if (rand.nextBoolean()) lRandomMovementFactor *= -1;
+					this.rotationYaw = MathHelper.wrapAngleTo180_float(this.rotationYaw + worldObj.rand.nextFloat() * lRandomMovementFactor * 20);
+				}
+			}
 			
 			if (worldObj.isRemote) //If client world, send player control packet
 			{
