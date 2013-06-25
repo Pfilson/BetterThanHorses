@@ -87,13 +87,15 @@ public class BTHEntityHorse extends EntityAnimal
 	private static final int cDWHunger = 25;
 	private static final int cDWFat = 26;
 	private static final int cDWStamina = 27;
+	private static final int cDWOtherFlags = 28;
 	private static final int cDWAversionPlayer = 29;
 	private static final int cDWAversionUndead = 30;
 	private static final int cDWAversionFire = 31;
 	
-	//Available flag numbers are 6 and 7
-	private static final int cGallopFlag = 6;
-	private static final int cGenderFlag = 7;
+	//Flags can be anywhere from 0 to 7
+	private static final int cGallopFlag = 0;
+	private static final int cGenderFlag = 1;
+	private static final int cGeldFlag = 2;
 	
 	public BTHEntityHorse(World par1World)
 	{
@@ -135,6 +137,7 @@ public class BTHEntityHorse extends EntityAnimal
 		this.dataWatcher.addObject(cDWHunger, Byte.valueOf((byte)cMaxHunger));
 		this.dataWatcher.addObject(cDWFat, Byte.valueOf((byte)0));
 		this.dataWatcher.addObject(cDWStamina, Byte.valueOf((byte)cMaxStamina));
+		this.dataWatcher.addObject(cDWOtherFlags, Byte.valueOf((byte)0));
 		
 		//Make half the horses male when spawning
 		if (rand.nextBoolean()) setIsMale(true);
@@ -158,6 +161,7 @@ public class BTHEntityHorse extends EntityAnimal
 		aNBTWrite.setByte("AversionPlayer", dataWatcher.getWatchableObjectByte(cDWAversionPlayer));
 		aNBTWrite.setByte("AversionUndead", dataWatcher.getWatchableObjectByte(cDWAversionUndead));
 		aNBTWrite.setByte("AversionFire", dataWatcher.getWatchableObjectByte(cDWAversionFire));
+		aNBTWrite.setByte("OtherFlags", dataWatcher.getWatchableObjectByte(cDWOtherFlags));
 	}
 	
 	/**
@@ -174,6 +178,7 @@ public class BTHEntityHorse extends EntityAnimal
 		dataWatcher.updateObject(cDWAversionPlayer, Byte.valueOf(aNBTRead.getByte("AversionPlayer")));
 		dataWatcher.updateObject(cDWAversionUndead, Byte.valueOf(aNBTRead.getByte("AversionUndead")));
 		dataWatcher.updateObject(cDWAversionFire, Byte.valueOf(aNBTRead.getByte("AversionFire")));
+		dataWatcher.updateObject(cDWOtherFlags, Byte.valueOf(aNBTRead.getByte("OtherFlags")));
 	}
 	
 	//TODO: Need to add custom sounds
@@ -219,12 +224,13 @@ public class BTHEntityHorse extends EntityAnimal
 		}
 		
 		//Handle castration
-		else if (aPlayer.getHeldItem() != null && aPlayer.getHeldItem().itemID == Item.shears.itemID && getIsMale()) //&& !this.getIsCastrated()
+		else if (aPlayer.getHeldItem() != null && aPlayer.getHeldItem().itemID == Item.shears.itemID && getIsMale() && !this.getIsGeld())
 		{
-			//TODO: add castrated flag and methods, like below
-			//this.setIsCastrated(true)
+			setIsGeld(true);
 			playSound("mob.sheep.shear", 1.0F, 1.0F);
 			playSound(getHurtSound(), 1.0F, 1.0F);
+			//The placenta effect. Mess around with the positioning a bit, because it may be slightly off.
+			worldObj.playAuxSFX(2222, MathHelper.floor_double(posX), MathHelper.floor_double(posY - 1), MathHelper.floor_double(posZ), 0);
 			aPlayer.getHeldItem().damageItem(1, aPlayer);
 			return true;
 		}
@@ -291,13 +297,26 @@ public class BTHEntityHorse extends EntityAnimal
 		return this.spawnBabyAnimal(par1EntityAgeable);
 	}
 	
+	public boolean getOtherFlag(int aFlagID)
+	{
+		return (dataWatcher.getWatchableObjectByte(cDWOtherFlags) & 1 << aFlagID) != 0;
+	}
+	
+	public void setOtherFlag(int aFlagID, boolean aFlag)
+	{
+		byte lPreFlagArray = dataWatcher.getWatchableObjectByte(cDWOtherFlags);
+		
+		if (aFlag) dataWatcher.updateObject(cDWOtherFlags, Byte.valueOf((byte)(lPreFlagArray | 1 << aFlagID)));
+		else dataWatcher.updateObject(cDWOtherFlags, Byte.valueOf((byte)(lPreFlagArray & ~(1 << aFlagID))));
+	}
+	
 	/**A method which returns true if the horse is male, using the other flags object
 	 * 
 	 * @return true if male, false if female
 	 */
 	public boolean getIsMale()
 	{
-		return this.getFlag(cGenderFlag);
+		return this.getOtherFlag(cGenderFlag);
 	}
 	
 	/**A method to set the isMale flag.
@@ -306,7 +325,17 @@ public class BTHEntityHorse extends EntityAnimal
 	 */
 	public void setIsMale(boolean aIsMale)
 	{
-		this.setFlag(cGenderFlag, aIsMale);
+		this.setOtherFlag(cGenderFlag, aIsMale);
+	}
+	
+	public boolean getIsGeld()
+	{
+		return this.getOtherFlag(cGeldFlag);
+	}
+	
+	public void setIsGeld(boolean aIsGeld)
+	{
+		this.setOtherFlag(cGeldFlag, aIsGeld);
 	}
 	
 	/**A method to determine the current health status of the horse. Returns a 0 if normal, a 1 if lamed, and a 2
@@ -455,12 +484,12 @@ public class BTHEntityHorse extends EntityAnimal
 	
 	public void setGalloping(boolean aShouldGallop)
 	{
-		this.setFlag(cGallopFlag, aShouldGallop);
+		this.setOtherFlag(cGallopFlag, aShouldGallop);
 	}
 	
 	public boolean isGalloping()
 	{
-		return this.getFlag(cGallopFlag);
+		return this.getOtherFlag(cGallopFlag);
 	}
 	
 	@Override
@@ -588,7 +617,7 @@ public class BTHEntityHorse extends EntityAnimal
 		
 		//TODO: add some better way of differentiating males and females
 		if (!getIsMale()) addPotionEffect(new PotionEffect(Potion.digSpeed.id, 2)); //2 ticks of 'haste' for females
-		else addPotionEffect(new PotionEffect(Potion.blindness.id, 2)); //2 ticks of 'blindness' for males
+		else if (!getIsGeld()) addPotionEffect(new PotionEffect(Potion.blindness.id, 2)); //2 ticks of 'blindness' for males
 		
 		//Used to prevent crippled horses from moving
 		if (lHealthStatus == 2) lIsTasking = true;
