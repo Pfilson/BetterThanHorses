@@ -61,6 +61,10 @@ public class BTHEntityHorse extends EntityAnimal
 	/**The delay between healing one half heart, measured in ticks (20 ticks = 1 second)*/
 	private static final int cHealingDelay = 20;
 	
+	/**The amount of aversion decrimented when exposed to the source of the aversion*/
+	//TODO: Mess around with this a bit, it determines how fast a horse trains out its fears
+	private static final float cAversionDecrimentFactor = 0.01F;
+	
 	/**The amount of strafing the horse undergoes when the left or right keys are pressed*/
 	private static final int cStrafingAmount = 5;
 	
@@ -589,6 +593,8 @@ public class BTHEntityHorse extends EntityAnimal
 			double lClosestThreatY = 0;
 			double lClosestThreatZ = 0;
 			boolean lIsAfraidOfThreat = true;
+			//0 for no threat, 1 for player, 2 for undead, and 3 for fire
+			byte lThreatType = 0;
 			Entity lEntityToAttack = null;
 			float lClosestThreatDistanceSq = Float.POSITIVE_INFINITY;
 			
@@ -600,13 +606,14 @@ public class BTHEntityHorse extends EntityAnimal
 				{
 					Entity lEntity = (Entity)var1.get(0);
 					
-					//Not neccesary, as this is the first 'threat' checked. Only here for demonstration/consistency
+					//Not necessary, as this is the first 'threat' checked. Only here for demonstration/consistency
 					//if (this.getDistanceSqToEntity(lEntity) < lClosestThreatDistanceSq)
 					{
 						lClosestThreatDistanceSq = (float)this.getDistanceSqToEntity(lEntity);
 						lClosestThreatX = lEntity.posX;
 						lClosestThreatY = lEntity.posY;
 						lClosestThreatZ = lEntity.posZ;
+						lThreatType = 2;
 						
 						if (getAversionUndead() < 0)
 						{
@@ -626,6 +633,7 @@ public class BTHEntityHorse extends EntityAnimal
 						lClosestThreatX = lEntity.posX;
 						lClosestThreatY = lEntity.posY;
 						lClosestThreatZ = lEntity.posZ;
+						lThreatType = 2;
 						
 						if (getAversionUndead() < 0)
 						{
@@ -649,6 +657,7 @@ public class BTHEntityHorse extends EntityAnimal
 						lClosestThreatX = lEntity.posX;
 						lClosestThreatY = lEntity.posY;
 						lClosestThreatZ = lEntity.posZ;
+						lThreatType = 1;
 						lIsAfraidOfThreat = true;
 					}
 				}
@@ -692,13 +701,15 @@ public class BTHEntityHorse extends EntityAnimal
 						lClosestThreatX = lClosestFire.posX;
 						lClosestThreatY = lClosestFire.posY;
 						lClosestThreatZ = lClosestFire.posZ;
+						lThreatType = 3;
 						lIsAfraidOfThreat = true;
 					}
 				}
 			}
 			
 			//Now that we've found the closest threat, lets avoid it
-			if (lClosestThreatDistanceSq < Float.POSITIVE_INFINITY)
+			//I've switched to a check on the threat type since it should be functionally identical and faster (if only slightly)
+			if (lThreatType != 0)
 			{
 				Vec3 lDestination;
 				
@@ -717,6 +728,11 @@ public class BTHEntityHorse extends EntityAnimal
 					//TODO: add code to make the horse attack the 'threat'
 					//if (lEntityToAttack != null) this.setTarget(lEntityToAttack);
 				}
+				
+				//Decrease aversion based on how close the aversion source is to the horse (closer equals a greater decrease)
+				if (lThreatType == 1) setAversionPlayer(getAversionPlayer() - cAversionDecrimentFactor / lClosestThreatDistanceSq);
+				if (lThreatType == 2) setAversionUndead(getAversionUndead() - cAversionDecrimentFactor / lClosestThreatDistanceSq);
+				if (lThreatType == 3) setAversionFire(getAversionFire() - cAversionDecrimentFactor / lClosestThreatDistanceSq);
 				
 				lIsTasking = true;
 			}	
