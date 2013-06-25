@@ -148,30 +148,32 @@ public class BTHEntityHorse extends EntityAnimal
 	 * (abstract) Protected helper method to write subclass entity data to NBT.
 	 */
 	@Override
-	public void writeEntityToNBT(NBTTagCompound par1NBTTagCompound)
+	public void writeEntityToNBT(NBTTagCompound aNBTWrite)
 	{
-		super.writeEntityToNBT(par1NBTTagCompound);
-		par1NBTTagCompound.setInteger("Hunger", this.getHunger());
-		par1NBTTagCompound.setInteger("Fat", this.getFat());
-		par1NBTTagCompound.setInteger("Stamina", this.getStamina());
-		par1NBTTagCompound.setInteger("AversionPlayer", this.getStamina());
-		par1NBTTagCompound.setInteger("AversionUndead", this.getStamina());
-		par1NBTTagCompound.setInteger("AversionFire", this.getStamina());
+		super.writeEntityToNBT(aNBTWrite);
+		
+		aNBTWrite.setInteger("Hunger", getHunger());
+		aNBTWrite.setInteger("Fat", getFat());
+		aNBTWrite.setInteger("Stamina", getStamina());
+		aNBTWrite.setByte("AversionPlayer", dataWatcher.getWatchableObjectByte(cDWAversionPlayer));
+		aNBTWrite.setByte("AversionUndead", dataWatcher.getWatchableObjectByte(cDWAversionUndead));
+		aNBTWrite.setByte("AversionFire", dataWatcher.getWatchableObjectByte(cDWAversionFire));
 	}
 	
 	/**
 	 * (abstract) Protected helper method to read subclass entity data from NBT.
 	 */
 	@Override
-	public void readEntityFromNBT(NBTTagCompound par1NBTTagCompound)
+	public void readEntityFromNBT(NBTTagCompound aNBTRead)
 	{
-		super.readEntityFromNBT(par1NBTTagCompound);
-		this.setHunger(par1NBTTagCompound.getInteger("Hunger"));
-		this.setHunger(par1NBTTagCompound.getInteger("Fat"));
-		this.setHunger(par1NBTTagCompound.getInteger("Stamina"));
-		this.setHunger(par1NBTTagCompound.getInteger("AversionPlayer"));
-		this.setHunger(par1NBTTagCompound.getInteger("AversionUndead"));
-		this.setHunger(par1NBTTagCompound.getInteger("AversionFire"));
+		super.readEntityFromNBT(aNBTRead);
+		
+		setHunger(aNBTRead.getInteger("Hunger"));
+		setFat(aNBTRead.getInteger("Fat"));
+		setStamina(aNBTRead.getInteger("Stamina"));
+		dataWatcher.updateObject(cDWAversionPlayer, Byte.valueOf(aNBTRead.getByte("AversionPlayer")));
+		dataWatcher.updateObject(cDWAversionUndead, Byte.valueOf(aNBTRead.getByte("AversionUndead")));
+		dataWatcher.updateObject(cDWAversionFire, Byte.valueOf(aNBTRead.getByte("AversionFire")));
 	}
 	
 	//TODO: Need to add custom sounds
@@ -407,7 +409,7 @@ public class BTHEntityHorse extends EntityAnimal
 	
 	public float getAversionPlayer()
 	{
-		return dataWatcher.getWatchableObjectByte(cDWAversionPlayer) / 16;
+		return dataWatcher.getWatchableObjectByte(cDWAversionPlayer) / 16.0F;
 	}
 	
 	/**Sets the horse's aversion level towards the undead, in meters.
@@ -422,7 +424,7 @@ public class BTHEntityHorse extends EntityAnimal
 	
 	public float getAversionUndead()
 	{
-		return dataWatcher.getWatchableObjectByte(cDWAversionUndead) / 16;
+		return dataWatcher.getWatchableObjectByte(cDWAversionUndead) / 16.0F;
 	}
 	
 	/**Sets the horse's aversion level towards fire, in meters.
@@ -437,7 +439,7 @@ public class BTHEntityHorse extends EntityAnimal
 	
 	public float getAversionFire()
 	{
-		return dataWatcher.getWatchableObjectByte(cDWAversionFire) / 16;
+		return dataWatcher.getWatchableObjectByte(cDWAversionFire) / 16.0F;
 	}
 	
 	/**This method gets the total weight being applied to the horse, only taking into account player armor.
