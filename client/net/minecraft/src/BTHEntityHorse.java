@@ -83,6 +83,10 @@ public class BTHEntityHorse extends EntityAnimal
 	/**The range in which a male horse will attempt to fight other male horses*/
 	private static final double cMaleFightingRange = 5.0D;
 	
+	//The inverse speed boost/penalty constants, for use in overriding gravel and sand movement modifiers in horses
+	//private static final float cInverseSpeedPenalty = (float)Math.pow(0.8, -1);
+	//private static final float cInverseSpeedBoost = (float)Math.pow(1.2, -1);
+	
 	//The datawatcher constants. Note that the max id a datawatcher can have is 31
 	private static final int cDWHunger = 25;
 	private static final int cDWFat = 26;
@@ -495,44 +499,27 @@ public class BTHEntityHorse extends EntityAnimal
 	@Override
 	public float getSpeedModifier()
 	{
-		float lSpeedModifier = 1.0F;
+		float lSpeedModifier = super.getSpeedModifier();
 		
-		if (this.isPotionActive(Potion.moveSlowdown))
-		{
-			lSpeedModifier *= 1.0F - 0.15F * (float)(this.getActivePotionEffect(Potion.moveSlowdown).getAmplifier() + 1);
-		}
+		int lX = MathHelper.floor_double(this.posX);
+		int lY = MathHelper.floor_double(this.posY - 0.03D - (double)yOffset);
+		int lZ = MathHelper.floor_double(this.posZ);
 		
-		if (this.onGround && this.IsAffectedByMovementModifiers())
-		{
-			int lX = MathHelper.floor_double(this.posX);
-			int lY = MathHelper.floor_double(this.posY - 0.03D - (double)this.yOffset);
-			int lZ = MathHelper.floor_double(this.posZ);
-			
-			int lBlockID = this.worldObj.getBlockId(lX, lY, lZ);
-			int lBlockIDAbove = this.worldObj.getBlockId(lX, lY + 1, lZ);
-			Block lBlock = Block.blocksList[lBlockID];
-			
-			//Speed penalty for snow and webs
-			if (lBlockIDAbove == Block.snow.blockID || lBlockIDAbove == Block.web.blockID)
-			{
-				lSpeedModifier *= 0.8F;
-			}
-			//Ignore sand and gravel
-			else if (lBlock != null && lBlockID != Block.sand.blockID && lBlockID != Block.gravel.blockID)
-			{
-				lSpeedModifier *= lBlock.GetMovementModifier(this.worldObj, lX, lY, lZ);
-			}
-			
-			lSpeedModifier *= this.GetHealthAndExhaustionModifier();
-		}
+		int lBlockID = worldObj.getBlockId(lX, lY, lZ);
 		
-		if (lSpeedModifier < 0.0F) lSpeedModifier = 0.0F;
+		if (lBlockID == Block.sand.blockID) lSpeedModifier *= 1.25; //Negate the sand penalty of *0.8
+		else if (lBlockID == Block.gravel.blockID) lSpeedModifier = lSpeedModifier * 5 / 6; //Negate the gravel penalty of *1.2
 		
 		return lSpeedModifier;
 	}
 	
+	//Makes it so that horses don't get stuck in webs and instead applies a normal speed penalty
 	@Override
-	public void setInWeb() {} //Makes it so that horses don't get stuck in webs
+	public void setInWeb()
+	{
+		this.motionX *= 0.8D;
+		this.motionZ *= 0.8D;
+	}
 	
 	@Override
 	protected void doBlockCollisions()
